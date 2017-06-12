@@ -1,5 +1,5 @@
 # MalDump
-MalDump is utility capable of dumping malwares encrypted with crypters that use one of most prelevent code injection techniques RunPE.
+MalDump is utility capable of dumping malwares encrypted with crypters that use one of most prevalent code injection techniques RunPE.
 
 ## Dependencies
 
