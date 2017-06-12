@@ -10,6 +10,7 @@ INVALID_HANDLE_VALUE = -1
 CURRENT_PROCESS_HANDLE_VALUE = -1
 
 process_handle = INVALID_HANDLE_VALUE
+thread_handle = INVALID_HANDLE_VALUE
 output_filename = "output.ex"
 
 def read_param(dbg, param_index):
@@ -35,6 +36,8 @@ def set_bp_on_ret(dbg, addr, handler):
 def handler_create_process_w_on_ret(dbg):
 	global process_handle
 	process_handle = hex(struct.unpack("L", dbg.read_process_memory(read_param(dbg, 9), 4))[0])
+	global thread_handle
+	thread_handle = hex(struct.unpack("L", dbg.read_process_memory(read_param(dbg, 9) + 4, 4))[0])
 	return pydbg.defines.DBG_CONTINUE
 
 def handler_create_process_w(dbg):
@@ -55,6 +58,12 @@ def handler_nt_write_virtual_memory(dbg):
 		with open(output_filename, "ab+") as f:
 			f.write(buf)
 			f.close()
+	return pydbg.defines.DBG_CONTINUE
+
+def handler_nt_resume_thread(dbg):
+	handle = hex(read_param(dbg, 0))
+	if thread_handle != INVALID_HANDLE_VALUE and handle == thread_handle:
+		dbg.terminate_process()
 	return pydbg.defines.DBG_CONTINUE
 
 def handler_load_dll(dbg):
@@ -87,8 +96,10 @@ try:
 except Exception:
 	pass
 
-nt_write_virtualMemory = dbg.func_resolve("ntdll", "NtWriteVirtualMemory")
-dbg.bp_set(nt_write_virtualMemory, description="", handler=handler_nt_write_virtual_memory)
+nt_write_virtual_memory = dbg.func_resolve("ntdll", "NtWriteVirtualMemory")
+dbg.bp_set(nt_write_virtual_memory, description="", handler=handler_nt_write_virtual_memory)
+nt_resume_thread = dbg.func_resolve("ntdll", "NtResumeThread")
+dbg.bp_set(nt_resume_thread, description="", handler=handler_nt_resume_thread)
 dbg.set_callback(pydbg.defines.LOAD_DLL_DEBUG_EVENT, handler_load_dll)
 
 dbg.run()
