@@ -13,6 +13,6 @@ pydasm
 
 ```
 
-python runpe_dump.py C:\\malwares\\crypted_malware.exe output_malware.exe
+python maldump.py C:\\malwares\\crypted_malware.exe output_malware.exe
 
 ```
